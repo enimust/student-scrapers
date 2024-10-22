@@ -18,6 +18,7 @@ from igMetadaCollector import getMetaData
 
 user = '' # set user for your own computer
 lengthOfScroll = 1
+searchTerm = ['unschooling', 'how to unschool your child', 'tradwives']
 
 def startBrowser():
     options = webdriver.ChromeOptions()
@@ -96,7 +97,6 @@ def getUniquePosts(filePath):
 ########################################
 # Run unschooling queries
 ########################################
-searchTerm = ['unschooling', 'how to unschool your child', 'tradwives']
 
 for search in searchTerm:
     filePath = getInstagram(search)
