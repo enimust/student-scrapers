@@ -1,36 +1,34 @@
 import pandas as pd 
 import csv
-import selenium 
-from selenium import webdriver
 from bs4 import BeautifulSoup as BS
-from selenium.webdriver.common.action_chains import ActionChains
 import logging
 import time
 import csv
 import datetime as datetime
 import os
 from igMetadaCollector import getMetaData
-
+from seleniumbase import Driver
 
 ########################################
 # Helper methods
 ########################################
 
 user = '' # set user for your own computer
-lengthOfScroll = 1
-searchTerm = ['unschooling', 'how to unschool your child', 'tradwives']
+lengthOfScroll = 3
+searchTerm = ['tradwives', 'wellesley', 'flatearth']
+
 
 def startBrowser():
-    options = webdriver.ChromeOptions()
-    userdatadir = f'/Users/{user}/Library/Application Support/Google/Chrome/'
-    profile = 'Profile 1'
-    options.add_argument(f"--user-data-dir={userdatadir}")
-    options.add_argument(f"--profile-directory={profile}")
-    browser = webdriver.Chrome(options=options)
-    logging.info("Opening browser!")
-    time.sleep(1)
-    return browser
-
+    try:
+        # Initialize the Chrome browser in Incognito mode
+        browser = Driver(browser="chrome", incognito=True, headless=False)
+        
+        logging.info("Opening browser in Incognito mode!")
+        time.sleep(1)
+        return browser
+    except Exception as e:
+        logging.error(f"Error opening browser: {e}")
+        return None
 
 def downloadPage(browser, filePath):
     try:
@@ -68,20 +66,21 @@ def getInstagram(term):
     if not os.path.isdir('./data'):
         os.mkdir('./data')
 
-    intermediateFilePath = f'./intermediate/{term}_{datetime.datetime.now().strftime("%m-%d-%y %H:%M:%S")}.html'
-    finalFilePath = f'./intermediate/{term}_{datetime.datetime.now().strftime("%m-%d-%y %H:%M:%S")}.csv'
+    intermediateFilePath = f'./intermediate/{term}_{datetime.datetime.now().strftime("%m-%d-%y %H-%M-%S")}.html'
+    finalFilePath = f'./intermediate/{term}_{datetime.datetime.now().strftime("%m-%d-%y %H-%M-%S")}.csv'
 
     browser = startBrowser()
     browser.get(f'https://www.instagram.com/explore/search/keyword/?q={term}')
-    time.sleep(10)
-    for i in range(0, lengthOfScroll):
-        ActionChains(browser)\
-            .scroll_by_amount(0, 900)\
-            .perform()
+    time.sleep(25)
+    
+    for i in range(lengthOfScroll):
+        # Use JavaScript to scroll by 900 pixels
+        browser.execute_script("window.scrollBy(0, 900);")
         time.sleep(5)
         downloadPage(browser, intermediateFilePath)
         readInstagram(intermediateFilePath, finalFilePath)
     
+    browser.quit()
     return finalFilePath
 
 def getUniquePosts(filePath):
@@ -101,5 +100,5 @@ def getUniquePosts(filePath):
 for search in searchTerm:
     filePath = getInstagram(search)
     getUniquePosts(filePath)
-    outFilePath = f'./data/{search}_{datetime.datetime.now().strftime("%m-%d-%y %H:%M:%S")}.csv'
+    outFilePath = f'./data/{search}_{datetime.datetime.now().strftime("%m-%d-%y %H-%M-%S")}.csv'
     getMetaData(filePath, outFilePath)

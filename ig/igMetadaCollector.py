@@ -250,8 +250,3 @@ def getMetaData(inFilepath: str, outFilepath: str):
     asyncio.run(collect(inFilepath, outFilepath))
     print("END COLLECTION")
 
-if __name__ == '__main__':
-    getMetaData(
-        os.path.join("posts", "2024-06-24 politics.csv"),
-        "async-test.csv"
-    )
